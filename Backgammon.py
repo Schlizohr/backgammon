@@ -144,6 +144,7 @@ class Game:
 def moves_are_valid(player: Player, moves: [(int, int)], game: Game):
     dice = list(game.current_dice)
     local_board = deepcopy(game.board)
+    locations = game.board.get_checkers_position_of(player)
     for src, target in moves:
         if len(game.board[0]) != 0 and src != 0:
             return False

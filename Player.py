@@ -1,13 +1,4 @@
-from abc import ABC, abstractmethod
-
-
-class Player(ABC):
-    def __init__(self, color):
-        self.color = color
-
-    @abstractmethod
-    def calculate_moves(self, dices: [int], board) -> [(int, int)]:
-        pass
+from Backgammon import Player
 
 
 class HumanPlayer(Player):

@@ -41,9 +41,9 @@ class Player(ABC):
 
     def __set_home(self, color):
         if color == Checker.BLACK:
-            self.home: Home = Home(6, 1)
-        elif color == Checker.WHITE:
             self.home: Home = Home(19, 24)
+        elif color == Checker.WHITE:
+            self.home: Home = Home(6, 1)
         else:
             raise ValueError("only black and white are supported")
 
@@ -51,14 +51,20 @@ class Player(ABC):
     def calculate_moves(self, dices: [int], board) -> [(int, int)]:
         pass
 
-    def winner(self):
-        logging.info(f"{self.color.name} WINNER")
+    def winner(self, points=1):
+        logging.info(f"{self.color.name} WINNER: {points}")
 
-    def loser(self):
-        pass
+    def loser(self, points=1):
+        logging.info(f"{self.color.name} LOSER: {points}")
 
     def invalid_move(self):
         pass
+
+    def reward(self, points):
+        if points > 0:
+            self.winner(points)
+        else:
+            self.loser(points)
 
 
 class Field:
@@ -212,21 +218,34 @@ class Game:
         self.board: Board = Board(player_1, player_2)
 
     def run(self):
-        self.play()
-
-    def play(self):
         while True:
             current_player: Player = next(self.players)
             self.current_dice: Die = Die()
-            moves = current_player.calculate_moves(deepcopy(self.current_dice.get_roll()), deepcopy(self.board))
-            while not moves_are_valid(current_player, moves, self.current_dice, deepcopy(self.board)):
-                current_player.invalid_move()
-                moves = current_player.calculate_moves(deepcopy(self.current_dice.get_roll()), deepcopy(self.board))
-
-            for src, tar in moves:
-                self.board.move(current_player.color, src, tar)
-
+            self.play(current_player)
             if len(self.board.get_checkers_position_of(current_player)) == 0:
-                current_player.winner()
-                next(self.players).loser()
+                loser = next(self.players)
+                points = self.calculate_points(current_player, loser)
+                current_player.reward(points)
+                loser.reward(-1 * points)
                 return None
+
+    def play(self, current_player: Player):
+        moves = current_player.calculate_moves(deepcopy(self.current_dice.get_roll()), deepcopy(self.board))
+        while not moves_are_valid(current_player, moves, self.current_dice, deepcopy(self.board)):
+            current_player.invalid_move()
+            moves = current_player.calculate_moves(deepcopy(self.current_dice.get_roll()), deepcopy(self.board))
+
+        for src, tar in moves:
+            self.board.move(current_player.color, src, tar)
+
+    def calculate_points(self, current_player, loser):
+        loser_pos = self.board.get_checkers_position_of(loser)
+        remaining_checkers = sum(map(lambda p: len(self.board[p]), loser_pos))
+        points = 1
+        if remaining_checkers == 15:
+            points = 2
+            if current_player.home.in_home(max(loser_pos)):
+                points = 3
+            if loser.color in self.board.out:
+                points = 4
+        return points

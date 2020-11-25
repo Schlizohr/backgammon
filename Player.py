@@ -1,4 +1,5 @@
 import logging
+import os
 from random import choice
 from time import sleep
 
@@ -36,6 +37,7 @@ class RandomPlayer(Player):
         return moves
 
     def slow(self, board):
+        os.system('cls' if os.name == 'nt' else 'clear')
         print(board, end="\r")
         sleep(0.5)
 

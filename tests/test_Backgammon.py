@@ -29,3 +29,13 @@ class TestValidation(TestCase):
         self.game.current_dice = Die(1, 4)
         pprint(self.game.board.board)
         self.assertRaises(ValueError, lambda: game_moves_are_valid(self.white, [(13, 14), (12, 8)], self.game))
+
+    def test_checker_number_all(self):
+        loser_pos = self.game.board.get_checkers_position_of(self.white)
+        self.assertEqual(sum(map(lambda p: len(self.game.board[p]), loser_pos)), 15)
+
+    def test_checker_number_with_two_removed(self):
+        self.game.board.remove_from(1)
+        self.game.board.remove_from(12)
+        loser_pos = self.game.board.get_checkers_position_of(self.white)
+        self.assertEqual(sum(map(lambda p: len(self.game.board[p]), loser_pos)), 13)

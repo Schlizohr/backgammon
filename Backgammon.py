@@ -5,6 +5,8 @@ from copy import deepcopy
 from enum import Enum
 from itertools import repeat, cycle
 
+import jsonpickle
+
 from move_verifier import moves_are_valid
 
 
@@ -258,9 +260,10 @@ class Board:
 class Game:
     current_dice = None
 
-    def __init__(self, player_1, player_2, _log_board_state=True):
+    def __init__(self, player_1, player_2, _log_board_state=False):
         global log_board_state
         log_board_state = _log_board_state
+        board_logger.debug("#" * 200)
         self.player_1: Player = player_1
         self.player_2: Player = player_2
         self.players: [Player] = [player_1, player_2]
@@ -316,9 +319,9 @@ class Game:
         return points
 
     @staticmethod
-    def log_board_state(game_state: GameStateLog):
+    def log_board_state(game_state: GameStateLog = None):
         global log_board_state
         if log_board_state:
             global board_logger
-            # print(pickle.dumps(game_state))
-            # board_logger.debug(game_state)
+            s = jsonpickle.encode(game_state)
+            board_logger.debug(s)

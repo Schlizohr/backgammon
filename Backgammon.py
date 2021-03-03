@@ -8,6 +8,31 @@ from itertools import repeat, cycle
 from move_verifier import moves_are_valid
 
 
+def get_logger(name, file, formatter, level, filemode="a"):
+    """To setup as many loggers as you want"""
+
+    handler = logging.FileHandler(file, mode=filemode)
+    handler.setFormatter(formatter)
+
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+    logger.addHandler(handler)
+
+    return logger
+
+
+log_board_state = False
+board_logger = get_logger("log_board_file", "log/board_state.log", logging.Formatter("%(message)s"), logging.DEBUG)
+
+
+class GameStateLog():
+    def __init__(self, board, die, player, moves):
+        self.board = board
+        self.die = die
+        self.player = player
+        self.moves = moves
+
+
 class Checker(Enum):
     BLACK = "x"
     WHITE = "o"
@@ -31,10 +56,36 @@ class Home:
         return self.get_lower() <= n <= self.get_higher()
 
 
-class Player(ABC):
-    logging = logging.getLogger(__name__)
+class Die:
 
-    def __init__(self, color):
+    def __init__(self, first=None, second=None):
+        self.first: int = first
+        if first is None:
+            self.first = random.randint(1, 6)
+        self.second: int = second
+        if second is None:
+            self.second = random.randint(1, 6)
+
+    def is_double(self):
+        return self.first == self.second
+
+    def get_roll(self) -> (int, int):
+        return self.first, self.second
+
+    def get_move_options(self) -> [int]:
+        if self.is_double():
+            return repeat(self.first, 4)
+        else:
+            return [self.first, self.second]
+
+    def __str__(self):
+        return f"{self.first}, {self.second}"
+
+
+class Player(ABC):
+    player_logging = logging.getLogger(__name__)
+
+    def __init__(self, color: Checker):
 
         self.color = color
         self.__set_home(color)
@@ -48,14 +99,14 @@ class Player(ABC):
             raise ValueError("only black and white are supported")
 
     @abstractmethod
-    def calculate_moves(self, dices: [int], board) -> [(int, int)]:
+    def calculate_moves(self, dices: Die, board) -> [(int, int)]:
         pass
 
     def winner(self, points=1):
-        logging.info(f"{self.color.name} WINNER: {points}")
+        self.player_logging.info(f"{self.color.name} WINNER: {points}")
 
     def loser(self, points=1):
-        logging.info(f"{self.color.name} LOSER: {points}")
+        self.player_logging.info(f"{self.color.name} LOSER: {points}")
 
     def invalid_move(self):
         pass
@@ -74,8 +125,11 @@ class Field:
     def place(self, checker: Checker, n=1):
         self.content.extend(repeat(checker, n))
 
-    def remove(self, n=1):
-        [self.content.pop() for _ in range(n)]
+    def remove(self, checker: Checker = None):
+        if checker is None:
+            self.content.pop()
+        else:
+            self.content.remove(checker)
 
     def __len__(self):
         return len(self.content)
@@ -110,7 +164,6 @@ class Board:
 
     def __init__(self, player_1: Player, player_2: Player):
         self.board = self.clear_board()
-        self.clear_board()
         self.out = self.board[0]
         self.place_checkers(player_1)
         self.place_checkers_rev(player_2)
@@ -124,11 +177,11 @@ class Board:
     def place_at(self, field_number: int, checker: Checker, n=1):
         self.board[field_number].place(checker, n)
 
-    def remove_from(self, field_number: int):
-        self.board[field_number].remove()
+    def remove_from(self, field_number: int, checker: Checker = None):
+        self.board[field_number].remove(checker)
 
     def move(self, checker: Checker, src: int, tar: int) -> None:
-        self.remove_from(src)
+        self.remove_from(src, checker)
         if tar <= 0 or tar >= 24:
             return
         if len(self.board[tar].content) == 1 and self.board[tar].content[0] != checker:
@@ -137,8 +190,23 @@ class Board:
         if tar != 0:
             self.place_at(tar, checker)
 
-    def get_checkers_position_of(self, player: Player) -> [int]:
-        return [pos for pos, v in list(self.board.items()) if player.color in v]
+    def get_checkers_position_of(self, player: Player = None, color=None) -> [int]:
+        color = player.color if player else color
+        return [pos for pos, v in list(self.board.items()) if color in v]
+
+    def reversed_board(self):
+        rev_board: Board = deepcopy(self)
+        rev_dict: dict = {abs(k - 25): v for k, v in rev_board.board.items()}
+        rev_dict[0] = rev_dict[25]
+        del rev_dict[25]
+        rev_board.board = dict(sorted(rev_dict.items()))
+        return rev_board
+
+    def get_view(self, revered=False):
+        if revered:
+            return self.reversed_board()
+        else:
+            return deepcopy(self)
 
     def __getitem__(self, item: int) -> Field:
         return self.board[item]
@@ -182,61 +250,58 @@ class Board:
             s += "\n"
         return s
 
-
-class Die:
-
-    def __init__(self, first=None, second=None):
-        self.first: int = first
-        if first is None:
-            self.first = random.randint(1, 6)
-        self.second: int = second
-        if second is None:
-            self.second = random.randint(1, 6)
-
-    def is_double(self):
-        return self.first == self.second
-
-    def get_roll(self) -> (int, int):
-        return self.first, self.second
-
-    def get_move_options(self) -> [int]:
-        if self.is_double():
-            return repeat(self.first, 4)
-        else:
-            return [self.first, self.second]
+    def __repr__(self):
+        # return pprint.pformat(self.board)
+        return self.__str__()
 
 
 class Game:
     current_dice = None
 
-    def __init__(self, player_1, player_2):
+    def __init__(self, player_1, player_2, _log_board_state=True):
+        global log_board_state
+        log_board_state = _log_board_state
         self.player_1: Player = player_1
         self.player_2: Player = player_2
         self.players: [Player] = [player_1, player_2]
         random.shuffle(self.players)
         self.players = cycle(self.players)
+        self.current_player: Player = next(self.players)
         self.board: Board = Board(player_1, player_2)
 
     def run(self):
         while True:
-            current_player: Player = next(self.players)
-            self.current_dice: Die = Die()
-            self.play(current_player)
-            if len(self.board.get_checkers_position_of(current_player)) == 0:
-                loser = next(self.players)
-                points = self.calculate_points(current_player, loser)
-                current_player.reward(points)
-                loser.reward(-1 * points)
+            self.current_player: Player = next(self.players)
+            self.play()
+            if len(self.board.get_checkers_position_of(self.current_player)) == 0:
+                self.notify_player()
                 return None
 
-    def play(self, current_player: Player):
-        moves = current_player.calculate_moves(deepcopy(self.current_dice.get_roll()), deepcopy(self.board))
-        while not moves_are_valid(current_player, moves, self.current_dice, deepcopy(self.board)):
-            current_player.invalid_move()
-            moves = current_player.calculate_moves(deepcopy(self.current_dice.get_roll()), deepcopy(self.board))
+    def notify_player(self):
+        loser = next(self.players)
+        points = self.calculate_points(self.current_player, loser)
+        self.current_player.reward(points)
+        loser.reward(-1 * points)
 
+    def play(self):
+        self.current_dice: Die = Die()
+        moves = self.players_moves()
         for src, tar in moves:
-            self.board.move(current_player.color, src, tar)
+            self.board.move(self.current_player.color, src, tar)
+
+    def players_moves(self):
+        is_player_2 = self.current_player == self.player_2
+        moves = self.current_player.calculate_moves(deepcopy(self.current_dice), self.board.get_view(is_player_2))
+        Game.log_board_state(GameStateLog(self.board.board, self.current_dice, self.current_player, moves))
+        while not moves_are_valid(self.current_player, moves, self.current_dice, self.board.get_view(is_player_2)):
+            self.current_player.invalid_move()
+            moves = self.current_player.calculate_moves(
+                deepcopy(self.current_dice),
+                self.board.get_view(is_player_2)
+            )
+        if is_player_2:
+            moves = [((25 - s) % 25, (25 - t) % 25) for s, t in moves]
+        return moves
 
     def calculate_points(self, current_player, loser):
         loser_pos = self.board.get_checkers_position_of(loser)
@@ -249,3 +314,11 @@ class Game:
             if loser.color in self.board.out:
                 points = 4
         return points
+
+    @staticmethod
+    def log_board_state(game_state: GameStateLog):
+        global log_board_state
+        if log_board_state:
+            global board_logger
+            # print(pickle.dumps(game_state))
+            # board_logger.debug(game_state)

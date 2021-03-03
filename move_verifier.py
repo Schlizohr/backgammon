@@ -10,19 +10,19 @@ if TYPE_CHECKING:
 logging = logging.getLogger(__name__)
 
 
-def is_valid_target(player: Player, target: int, board: Board) -> bool:
+def is_valid_target(color, target: int, board: Board) -> bool:
     if not 0 <= target <= 24:
         return True
     target_field = board[target]
-    return all([c == player.color for c in target_field]) or len(target_field) <= 1
+    return all([c == color for c in target_field]) or len(target_field) <= 1
 
 
-def has_src(player: Player, src: int, board: Board) -> bool:
-    return player.color in board[src]
+def has_src(color, src: int, board: Board) -> bool:
+    return color in board[src]
 
 
-def can_move(player: Player, src: int, target: int, board: Board) -> bool:
-    return has_src(player, src, board) and is_valid_target(player, target, board)
+def can_move(color, src: int, target: int, board: Board) -> bool:
+    return has_src(color, src, board) and is_valid_target(color, target, board)
 
 
 def moves_are_valid(player: Player, moves: [(int, int)], die: Die, board: Board):
@@ -49,7 +49,7 @@ def verify_moves(player: Player, moves: [(int, int)], die: Die, board: Board):
         logging.debug(f"out is okay")
 
         dif = abs(src - target)
-        if src == 0 and player.home.out_bound == 1:
+        if src == 0:
             dif = 25 - target
         if dif not in dice and 0 != src and target != 0:
             logging.debug(f"distance {dif} of {src},{target} dose not match with any die")
@@ -89,7 +89,7 @@ def verify_moves(player: Player, moves: [(int, int)], die: Die, board: Board):
             logging.debug(f"can remove checker from game")
         else:
             target_field.place(player.color)
-        local_src.remove()
+        local_src.remove(player.color)
         logging.debug(f"move is okay")
 
 

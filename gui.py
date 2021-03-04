@@ -608,7 +608,7 @@ class GameUi(tk.Frame):
         self.board_canvas.focus_set()
         self.player_1 = HumanPlayer(EngineChecker.BLACK, self.board, self.items)
         self.player_2 = HumanPlayer(EngineChecker.WHITE, self.board, self.items)
-        self.game = Game(self.player_1, self.player_2)
+        self.game = Game(self.player_1, self.player_2, False)
         self.game.run()
         ###### TEST ######
         self.toggle = False

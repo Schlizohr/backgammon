@@ -7,6 +7,7 @@ from itertools import repeat, cycle
 
 import jsonpickle
 
+from Protocol import Protocol
 from move_verifier import moves_are_valid
 
 
@@ -259,6 +260,7 @@ class Board:
 
 class Game:
     current_dice = None
+    protocol = None
 
     def __init__(self, player_1, player_2, _log_board_state=False):
         global log_board_state
@@ -271,6 +273,7 @@ class Game:
         self.players = cycle(self.players)
         self.current_player: Player = next(self.players)
         self.board: Board = Board(player_1, player_2)
+        self.protocol = Protocol(player_1, player_2, filename=None)
 
     def run(self):
         while True:
@@ -288,9 +291,10 @@ class Game:
 
     def play(self):
         self.current_dice: Die = Die()
-        moves = self.players_moves()
+        moves = self.players_moves()  # verify moves
         for src, tar in moves:
             self.board.move(self.current_player.color, src, tar)
+        self.protocol.log_player_turn(self.current_player, self.current_dice, moves)
 
     def players_moves(self):
         is_player_2 = self.current_player == self.player_2

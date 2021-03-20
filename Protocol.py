@@ -53,22 +53,11 @@ def printTurn(dices, moves):
 def printDices(dices):
     return str(dices).replace(',', '').replace(' ', '')
 
-def replaceZeroWithBar(moves):
-    replacedMoves = []
-    for (src, trg) in moves:
-        if src == 0:
-            src = "Bar"
-        if trg == 0:
-            trg = "Off"
-        replacedMoves.append((src, trg))
-    return replacedMoves
-
 #in die klasse rein
 def printMoves(moves):
     if len(moves) == 0:
-        return "Cannot Move"
+        return ""
     protocol_logger.debug("Before replace moves: " + str(moves))
-    moves = replaceZeroWithBar(moves)
     protocol_logger.debug("After replace moves: "+str(moves))
     # add serial moves
     serial_moves = [moves[0]]

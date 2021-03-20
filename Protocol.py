@@ -59,41 +59,9 @@ def printMoves(moves):
         return ""
     protocol_logger.debug("Before replace moves: " + str(moves))
     protocol_logger.debug("After replace moves: "+str(moves))
-    # add serial moves
-    serial_moves = [moves[0]]
-    for i in range(len(moves) - 1):
-        (mvsrc, mvtrg) = moves[i + 1]
-        added_move_to_serial = False
-        for j in range(len(serial_moves)):
-            (tmpmvsrc, tmpmvtrg) = serial_moves[j]
-            if mvtrg == tmpmvsrc:
-                serial_moves[j] = (mvsrc, tmpmvtrg)
-                added_move_to_serial = True
-                #print("Merged moves")
-                break
-            elif mvsrc == tmpmvtrg:
-                serial_moves[j] = (tmpmvsrc, mvtrg)
-                added_move_to_serial = True
-                #print("Merged moves2")
-                break
-        if not added_move_to_serial:
-            serial_moves.append((mvsrc, mvtrg))
-            #print("Added move")
-
-    # merge duplicate moves
-    formated_moves = {}
-    for (mvsrc, mvtrg) in serial_moves:
-        key = str(mvsrc) + "/" + str(mvtrg)
-        if key in formated_moves.keys():
-            formated_moves[key] = formated_moves[key] + 1
-        else:
-            formated_moves[key] = 1
 
     movesStr = ""
-    for move in formated_moves:
-        if formated_moves[move] > 1:
-            movesStr += str(move) + "(" + str(formated_moves[move]) + ")" + " "
-        else:
-            movesStr += str(move) + " "
+    for (mvsrc, mvtrg) in moves:
+        movesStr +=  str(str(mvsrc) + "/" + str(mvtrg)) + " "
     return movesStr.strip()
 

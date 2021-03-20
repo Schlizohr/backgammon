@@ -10,10 +10,10 @@ class Test(TestCase):
     logging.basicConfig(level=logging.DEBUG)
 
     def test_double_two_move_two_checkers_serial(self):
-        self.assertEqual("24/22 24/22 24/20", printMoves([(24, 22), (24, 22), (22, 20)]))
+        self.assertEqual("24/22 24/22 22/20", printMoves([(24, 22), (24, 22), (22, 20)]))
 
     def test_double_two_move_two_checkers_serial2(self):
-        self.assertEqual("24/22 24/22 24/20 24/20", printMoves([(24, 22), (24, 22), (22, 20), (22, 20)]))
+        self.assertEqual("24/22 24/22 22/20 22/20", printMoves([(24, 22), (24, 22), (22, 20), (22, 20)]))
 
     def test_normal_two_moves(self):
         self.assertEqual("24/22 23/17", printMoves([(24, 22), (23, 17)]))

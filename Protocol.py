@@ -70,12 +70,13 @@ class Protocol:
                 turn = []
                 if ":" in element:
                     if len(turn) == 0:
+                        pass
 
 
+            #moves =[]
+            #moves.append(Move(src,trg))
+            #self.game_proto.append(Turn(die,moves))
 
-            moves =[]
-            moves.append(Move(src,trg))
-            self.game_proto.append(Turn(die,moves))
 
     def log_player_turn(self, player, dices, moves):
         if self.one_player_turn is None:

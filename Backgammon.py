@@ -13,8 +13,10 @@ from move_verifier import moves_are_valid
 
 def get_logger(name, file, formatter, level, filemode="a"):
     """To setup as many loggers as you want"""
-
-    handler = logging.FileHandler(file, mode=filemode)
+    try:
+        handler = logging.FileHandler(file, mode=filemode)
+    except FileNotFoundError:
+        handler = logging.FileHandler('../'+file, mode=filemode)
     handler.setFormatter(formatter)
 
     logger = logging.getLogger(name)

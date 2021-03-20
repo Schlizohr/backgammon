@@ -1,7 +1,9 @@
 import logging
 from unittest import TestCase
 
-from Protocol import printMoves
+from Backgammon import Checker
+from Player import HumanPlayer
+from Protocol import printMoves, Protocol
 
 logging.basicConfig(level=logging.CRITICAL)
 
@@ -26,3 +28,6 @@ class Test(TestCase):
 
     def test_cannot_move(self):
         self.assertEqual("", printMoves([]))
+
+    def test_readProtocol(self):
+        prot = Protocol(HumanPlayer(Checker.WHITE), HumanPlayer(Checker.BLACK), 'prototoread','r')

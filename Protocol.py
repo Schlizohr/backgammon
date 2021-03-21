@@ -65,17 +65,36 @@ class Protocol:
             #delete turn number
             line = (line.split(")")[1]).strip()
             #split by space
+            #example line :   63: 25/22 22/16             64: 21/15 15/11
             lineElements = line.split(" ")
+            die=None
+            turn = []
+            moves = []
             for element in lineElements:
-                turn = []
                 if ":" in element:
-                    if len(turn) == 0:
-                        pass
+                    if len(moves) != 0:
+                        tempturn = Turn(die,moves)
+                        self.game_proto.append(tempturn)
+                        moves = []
+                        die = None
+                    element=element.replace(":","").strip()
+                    die = Die(element[0],element[1])
+                elif "/" in element:
+                    #print(str(element.split("/")[0]))
+                    moves.append(Move((element.split("/"))[0],(element.split("/"))[1]))
+
+            if len(moves) != 0:
+                self.game_proto.append(Turn(die, moves))
 
 
-            #moves =[]
-            #moves.append(Move(src,trg))
-            #self.game_proto.append(Turn(die,moves))
+    def printGameProto(self):
+        for turn in self.game_proto:
+            print(str(turn)+"\n")
+
+    def whowon(self):
+        return "Player: "+str(((len(self.game_proto)+1)%2)+1) +" won!"
+
+
 
 
     def log_player_turn(self, player, dices, moves):
@@ -118,19 +137,37 @@ def printMoves(moves):
 
 class Turn:
     die = None
-    moveWithDie = []
+    moves = []
 
     def __init__(self, die, moves):
-        self.moveWithDie.append((die, moves))
+        self.die=die
+        self.moves=moves
 
+    def __str__(self):
+        retString = "Die: "+str(self.die)
+        for move in self.moves:
+            retString = retString + " " + str(move)
+        return retString
 
 class Move:
     src = None
     trg = None
 
     def __init__(self, src, trg):
-        if src in range(0, 24) and trg in range(0, 24):
+        if 0 <= int(src) <= 24 and 0 <= int(trg) <= 24:
             self.src = src
             self.trg = trg
         else:
-            protocol_logger.log("Input file contains move thats not valid: " + str(src) + "->" + str(trg))
+            protocol_logger.debug("Input file contains move thats not valid: " + str(src) + "->" + str(trg))
+
+    def __str__(self):
+        return str(self.src)+"/"+str(self.trg)
+
+class Die:
+
+    def __init__(self, first=None, second=None):
+        self.first: int = first
+        self.second: int = second
+
+    def __str__(self):
+        return f"{self.first}, {self.second}"

@@ -29,5 +29,7 @@ class Test(TestCase):
     def test_cannot_move(self):
         self.assertEqual("", printMoves([]))
 
-    def test_readProtocol(self):
-        prot = Protocol(HumanPlayer(Checker.WHITE), HumanPlayer(Checker.BLACK), 'prototoread','r')
+    #def test_readProtocol(self):
+    #    prot = Protocol(HumanPlayer(Checker.WHITE), HumanPlayer(Checker.BLACK), 'prototoread','r')
+    #    prot.printGameProto()
+    #    print(prot.whowon())

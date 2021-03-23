@@ -1,4 +1,5 @@
 import logging
+import os
 from unittest import TestCase
 
 from Backgammon import Checker

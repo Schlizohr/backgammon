@@ -58,44 +58,46 @@ class Protocol:
         for line in lines:
             count += 1
             line = line.strip()
-            if line[0] == ';' or not line[0].isdigit():
+            if len(line) == 0:
+                continue
+            if line[0] == ';' or not line[0].isdigit() or 'match' in line:
                 continue
             protocol_logger.debug("Line{}: {}".format(count, line.strip()))
 
-            #delete turn number
+            # delete turn number
+            # print(line)
             line = (line.split(")")[1]).strip()
-            #split by space
-            #example line :   63: 25/22 22/16             64: 21/15 15/11
+            # split by space
+            # example line :   63: 25/22 22/16             64: 21/15 15/11
             lineElements = line.split(" ")
-            die=None
+            die = None
             turn = []
             moves = []
+            got_dices = False
             for element in lineElements:
                 if ":" in element:
-                    if len(moves) != 0:
-                        tempturn = Turn(die,moves)
+                    if len(moves) != 0 or got_dices:
+                        tempturn = Turn(die, moves)
                         self.game_proto.append(tempturn)
                         moves = []
                         die = None
-                    element=element.replace(":","").strip()
-                    die = Die(element[0],element[1])
+                        got_dices = False
+                    element = element.replace(":", "").strip()
+                    die = Die(element[0], element[1])
+                    got_dices = True
                 elif "/" in element:
-                    #print(str(element.split("/")[0]))
-                    moves.append(Move((element.split("/"))[0],(element.split("/"))[1]))
+                    # print(str(element.split("/")[0]))
+                    moves.append(Move((element.split("/"))[0], (element.split("/"))[1]))
 
-            if len(moves) != 0:
+            if len(moves) != 0 or got_dices:
                 self.game_proto.append(Turn(die, moves))
-
 
     def printGameProto(self):
         for turn in self.game_proto:
-            print(str(turn)+"\n")
+            print(str(turn) + "\n")
 
     def whowon(self):
-        return "Player: "+str(((len(self.game_proto)+1)%2)+1) +" won!"
-
-
-
+        return "Player: " + str(((len(self.game_proto) + 1) % 2) + 1) + " won! ->"+ str(len(self.game_proto))
 
     def log_player_turn(self, player, dices, moves):
         if self.one_player_turn is None:
@@ -140,28 +142,31 @@ class Turn:
     moves = []
 
     def __init__(self, die, moves):
-        self.die=die
-        self.moves=moves
+        self.die = die
+        self.moves = moves
 
     def __str__(self):
-        retString = "Die: "+str(self.die)
+        retString = "Die: " + str(self.die)
         for move in self.moves:
             retString = retString + " " + str(move)
         return retString
+
 
 class Move:
     src = None
     trg = None
 
     def __init__(self, src, trg):
-        if 0 <= int(src) <= 24 and 0 <= int(trg) <= 24:
+        # print("Src: "+str(src)+" Trg: "+str(trg))
+        if 0 <= int(src.replace('*', '').strip()) <= 24 and 0 <= int(trg.replace('*', '').strip()) <= 24:
             self.src = src
             self.trg = trg
         else:
             protocol_logger.debug("Input file contains move thats not valid: " + str(src) + "->" + str(trg))
 
     def __str__(self):
-        return str(self.src)+"/"+str(self.trg)
+        return str(self.src) + "/" + str(self.trg)
+
 
 class Die:
 

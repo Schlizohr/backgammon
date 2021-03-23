@@ -1,13 +1,15 @@
-#( 81-90 / 2222 records ) done
+# ( 81-90 / 2222 records ) done
 import glob
 import os
+import re
 from datetime import datetime
 
 directory = "../protocol/gamefiles/"
 
 
 def openProtocolFile(filename, count=0):
-    protocol_file = open(filename, "r")
+    print("filename: " + filename)
+    protocol_file = open(filename, "r", encoding="utf8", errors='replace')
     # print("countt:"+str(count))
     readProtocol(protocol_file, count)
     protocol_file.close()
@@ -17,11 +19,21 @@ def writeFile(lines_per_file, nr=0):
     file_name = str(nr) + "-splitprot-" + datetime.now().strftime("%Y%m%d%H%M%S") + "-" + str(len(lines_per_file))
     file_name = file_name + ".txt"
     if "drop" not in lines_per_file.lower():
-        protocol_file = open("../protocol/gamefiles/splitted/" + file_name, "w")
+        # protocol_file = open("../protocol/gamefiles/splitted/drops/" + file_name, "w")
+        return
+    elif "cannot move" in lines_per_file.lower() or "/off" in lines_per_file.lower() or "bar/" in lines_per_file.lower():
+        # protocol_file = open("../protocol/gamefiles/splitted/wrongformat/" + file_name, "w")
+        return
+    elif countnonoverlappingrematches("\(\d\)", lines_per_file) > 0:
+        return
     else:
-        protocol_file = open("../protocol/gamefiles/splitted/drops/" + file_name, "w")
+        protocol_file = open("../protocol/gamefiles/splitted/" + file_name, "w", encoding="utf8")
     protocol_file.write(lines_per_file)
     protocol_file.close()
+
+
+def countnonoverlappingrematches(pattern, thestring):
+    return re.subn(pattern, '', thestring)[1]
 
 
 def readProtocol(protocol_file, countfile=0):

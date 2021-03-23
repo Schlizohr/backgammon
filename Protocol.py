@@ -38,6 +38,7 @@ class Protocol:
         if mode == 'w':
             self.createProtocolFile(filename)
         else:
+            #print("Opening: "+filename)
             self.openProtocolFile(filename)
 
 
@@ -53,9 +54,9 @@ class Protocol:
     def openProtocolFile(self, filename):
         self.protocol_filename = filename
         try:
-            self.protocol_file = open("protocol/" + filename, "r")
+            self.protocol_file = open("protocol/" + filename, "r",errors='replace')
         except FileNotFoundError:
-            self.protocol_file = open("../protocol/" + filename, "r")
+            self.protocol_file = open("../protocol/" + filename, "r", errors='replace')
 
         self.readProtocol()
         self.protocol_file.close()
@@ -108,6 +109,10 @@ class Protocol:
 
     def whowon(self):
         return "Player: " + str(((len(self.game_proto) + 1) % 2) + 1) + " won! ->"+ str(len(self.game_proto))
+
+    def whowonNumber(self):
+        return ((len(self.game_proto) + 1) % 2) + 1
+
 
     def log_player_turn(self, player, dices, moves):
         if self.one_player_turn is None:
@@ -167,7 +172,7 @@ class Move:
     trg = None
 
     def __init__(self, src, trg):
-        # print("Src: "+str(src)+" Trg: "+str(trg))
+        #print("Src: "+str(src)+" Trg: "+str(trg))
         if 0 <= int(src.replace('*', '').strip()) <= 24 and 0 <= int(trg.replace('*', '').strip()) <= 24:
             self.src = src
             self.trg = trg

@@ -21,15 +21,25 @@ class Protocol:
     game_proto = []
 
     def __init__(self, player1, player2, filename=None, mode='w'):
-        if mode == 'r' and filename == None:
+        if mode == 'r' and filename is None:
             protocol_logger.debug("r is given but no filename !")
             return
         self.player1 = player1
         self.player2 = player2
+
+        #if something doesnt work with protocol it could be with the following 4 lines
+        self.protocol_file = None
+        self.protocol_filename = None
+        self.turn_number = 1
+        self.one_player_turn = None
+
+        self.game_proto = []
+
         if mode == 'w':
             self.createProtocolFile(filename)
         else:
             self.openProtocolFile(filename)
+
 
     def createProtocolFile(self, filename):
         if filename is None:

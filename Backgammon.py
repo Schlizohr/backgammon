@@ -187,7 +187,7 @@ class Board:
 
     def move(self, checker: Checker, src: int, tar: int) -> None:
         self.remove_from(src, checker)
-        if tar <= 0 or tar >= 24:
+        if tar <= 0 or tar >= 25:
             return
         if len(self.board[tar].content) == 1 and self.board[tar].content[0] != checker:
             self.place_at(0, self.board[tar].content[0])

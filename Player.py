@@ -73,13 +73,7 @@ class AiPlayer(Player):
         if self.color == Checker.BLACK:
             extreme = min(win_chance_white)
 
-        self.slow(board)
         return moves_options[win_chance_white.index(extreme)]
-
-    def slow(self, board):
-        os.system('cls' if os.name == 'nt' else 'clear')
-        print(board, end="\r")
-        sleep(0.5)
 
     def fast(self, dices, moves):
         logging.info(f"die: {dices} -> moves: {moves}")

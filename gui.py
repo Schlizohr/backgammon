@@ -7,6 +7,7 @@ from PIL import Image
 from PIL import ImageTk
 
 from Backgammon import Player, Game, Checker as EngineChecker, Die, Board
+from Player import AiPlayer
 from move_generator import generate_moves
 
 
@@ -607,9 +608,11 @@ class GameUi(tk.Frame):
         self.setup_game()
         self.board_canvas.focus_set()
         self.player_1 = HumanPlayer(EngineChecker.BLACK, self.board, self.items)
-        self.player_2 = HumanPlayer(EngineChecker.WHITE, self.board, self.items)
+        self.player_2 = AiPlayer(EngineChecker.WHITE)
         self.game = Game(self.player_1, self.player_2, False)
+
         self.game.run()
+
         ###### TEST ######
         self.toggle = False
         self.checker = Checker(self.board.canvas, "red")

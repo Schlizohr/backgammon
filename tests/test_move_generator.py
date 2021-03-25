@@ -133,3 +133,17 @@ class Test(TestCase):
 
         moves = generate_moves_serial(self.black, Die(4, 6), game.board.get_view(True))
         print(moves)
+
+    def test_black_move_out_4(self):
+        self.game.board.board = self.game.board.clear_board()
+        self.game.board.place_at(22, self.black.color, 4)
+        self.game.board.place_at(21, self.black.color, 2)
+        self.game.current_player = self.black
+
+        self.game.board.place_at(23, self.white.color, 6)
+        print(self.game.board.get_view(True))
+
+        moves = generate_moves_serial(self.black, Die(4, 4), self.game.board.get_view(True))
+        print(moves)
+        # expected_moves = [[(0, 23)]]
+        # self.assertEqual(moves, expected_moves)

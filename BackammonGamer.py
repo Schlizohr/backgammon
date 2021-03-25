@@ -9,9 +9,9 @@ import torch.nn as nn
 from pyro.infer import SVI, Trace_ELBO, Predictive
 from pyro.infer.autoguide import AutoDiagonalNormal
 from pyro.nn import PyroModule, PyroSample
-from torch.optim import Adam
 
 from Backgammon import Board, Field, Checker
+from helper.Trainingsdata import load_trainings_data
 
 
 class TrainingsData:
@@ -120,6 +120,7 @@ class NeuralNetwork(PyroModule):
         self.fc2 = PyroModule[nn.Linear](hidden_nodes, 1)
         self.fc2.weight = PyroSample(dist.Normal(0., 1.).expand([1, hidden_nodes]).to_event(2))
         self.fc2.bias = PyroSample(dist.Normal(0., 1.).expand([1]).to_event(1))
+        self.relu = nn.ReLU()
 
     def forward(self, x, y=None):
         x = self.relu(self.fc1(x))
@@ -135,30 +136,37 @@ class Evaluator:
         print("setup evaluator")
         self.data = data
         shuffle(self.data)
-        half_size = int(len(self.data) / 2)
-        self.trainings_data = self.data[:half_size]
-        self.test_data = self.data[half_size:]
+        self.trainings_data = self.data
+        self.isSplit = split
+        if split:
+            half_size = int(len(self.data) / 2)
+            self.trainings_data = self.data[:half_size]
+            self.test_data = self.data[half_size:]
+            self.boards_test_data, self.winners_test_data = self.__init_data(self.test_data)
+
         self.boards_trainings_data, self.winners_trainings_data = self.__init_data(self.trainings_data)
-        self.boards_test_data, self.winners_test_data = self.__init_data(self.test_data)
         self.model = NeuralNetwork()
         self.guide = self.__init_guide()
+        self.latest_means = []
+        self.latest_stds = []
 
     def __init_guide(self):
         print("setup guide")
         guide = AutoDiagonalNormal(
             self.model)  # automatic guide generation http://docs.pyro.ai/en/0.2.1-release/contrib.autoguide.html
 
-        optimizer = Adam([])  # optimiser for stochastic optimization, use default parameters
+        optimizer = pyro.optim.Adam({"lr": 1e-2})  # optimiser for stochastic optimization, use default parameters
 
-        svi = SVI(self.model, guide, optimizer, loss=Trace_ELBO(),
-                  return_sites=("linear.weight", "obs", "_RETURN"))  # Stochastic Variational Inference
+        svi = SVI(self.model, guide, optimizer, loss=Trace_ELBO())  # Stochastic Variational Inference
 
         pyro.clear_param_store()
-        [svi.step(self.boards_trainings_data, self.winners_trainings_data) for i in range(1000)]
+        [svi.step(self.boards_trainings_data, self.winners_trainings_data) for i in range(5000)]
+        pyro.get_param_store().save("model/model_save")
         guide.requires_grad_(False)
         return guide
 
-    def __init_data(self, data: [TrainingsData]):
+    @staticmethod
+    def __init_data(data: [TrainingsData]):
         print("init data")
         boards = []
         winners = []
@@ -167,15 +175,28 @@ class Evaluator:
             winners.append(test_data.winner)
         return torch.tensor(boards), torch.tensor(winners)
 
-    def evaluate_model(self):
+    def predict(self, data=None):
+        print("evaluate model")
         predictor = Predictive(self.model, guide=self.guide, num_samples=1000)
-        print(predictor)
+        print("predictor", predictor)
 
-        prediction = predictor(self.boards_test_data)
-        print(prediction)
+        if data is None:
+            data = self.boards_test_data
 
-        predicted_mean = prediction['obs'].T.detach().numpy().mean(axis=1)
-        predicted_std = prediction['obs'].T.detach().numpy().std(axis=1)
+        prediction = predictor(data)
+        print("prediction", prediction)
 
-        print(predicted_mean)
-        print(predicted_std)
+        self.latest_means = prediction['obs'].T.detach().numpy().mean(axis=1)
+        self.latest_stds = prediction['obs'].T.detach().numpy().std(axis=1)
+
+        print("mean", self.latest_means)
+        print("std", self.latest_stds)
+
+
+class AI():
+    def __init__(self):
+        data = load_trainings_data()
+        self.ai = Evaluator(data)
+
+    def predict(self, data):
+        return self.ai.predict(data)

@@ -195,8 +195,10 @@ class Evaluator:
 
 class AI():
     def __init__(self):
+        print("being init AI")
         data = load_trainings_data()
         self.ai = Evaluator(data)
+        print("finished int ai")
 
     def predict(self, data):
         return self.ai.predict(data)

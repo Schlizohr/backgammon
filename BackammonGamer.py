@@ -50,11 +50,22 @@ class Evaluator:
             self.boards_test_data, self.winners_test_data = self.__init_data(self.test_data)
 
         self.boards_trainings_data, self.winners_trainings_data = self.__init_data(self.trainings_data)
-        self.model = model
-        self.guide = self.__init_guide()
+
+        self.set_model_and_guide(model, load=False)
+
         self.latest_means = []
         self.latest_stds = []
         self.latest_data = []
+
+    def set_model_and_guide(self, model, load=False):
+        if load:
+            self.model = model
+            self.load_model_and_guide()
+        else:
+            self.model = model
+            self.guide = self.__init_guide()
+
+            self.save_model_and_guide(self.model, self.guide)
 
     def __init_guide(self):
         print("setup guide")
@@ -67,9 +78,18 @@ class Evaluator:
 
         pyro.clear_param_store()
         [svi.step(self.boards_trainings_data, self.winners_trainings_data) for i in trange(1000)]
-        pyro.get_param_store().save("model/model_save")
         guide.requires_grad_(False)
         return guide
+
+    def save_model_and_guide(self, model, guide):
+        torch.save({"model": model.state_dict(), "guide": guide}, "model/backgammon_model.pt")
+        pyro.get_param_store().save("model/backgammon_params.pt")
+
+    def load_model_and_guide(self):
+        saved_model_dict = torch.load("model/backgammon_model.pt")
+        self.model.load_state_dict(saved_model_dict['model'])
+        self.guide = saved_model_dict['guide']
+        pyro.get_param_store().load("model/backgammon_params.pt")
 
     @staticmethod
     def __init_data(data: [TrainingsData]):
@@ -112,6 +132,7 @@ def load_trainings_data(n=-1):
 
     for filename in tqdm(files):
         path = os.path.join(directory, filename)
+        # print("Opening:"+path)
         with open(path, "r") as fp:
             data: str = json.load(fp, object_hook=lambda d: TrainingsData(**d))
             data: [TrainingsData] = json.loads(data, object_hook=lambda d: TrainingsData(**d))

@@ -64,5 +64,5 @@ def create_trainings_data():
 
 
 if __name__ == '__main__':
-    delete_old_files("protocol/trainingsboards/*.txt")
+    delete_old_files("../protocol/trainingsboards/*.txt")
     create_trainings_data()

@@ -37,35 +37,46 @@ class NeuralNetwork(PyroModule):
 
 
 class Evaluator:
-    def __init__(self, data: [TrainingsData], split=True, model=NeuralNetwork()):
+    def __init__(self):
         print("setup evaluator")
-        self.data = data
+        self.data = None
+        self.isSplit = None
+        self.trainings_data = None
+        self.test_data = None
+        self.boards_test_data = None
+        self.winners_test_data = None
+        self.boards_trainings_data = None
+        self.winners_trainings_data = None
+        self.guide = None
+        self.model = None
+
+        self.latest_means = []
+        self.latest_stds = []
+        self.latest_data = []
+
+    def create(self,split=True, model=NeuralNetwork(), load = False,n=-1):
+        self.isSplit = split
+        self.model = model
+        if load:
+            self.load_model_and_guide()
+        else:
+            self.create_model_and_guide(n)
+
+    def create_model_and_guide(self,n=-1):
+
+        self.data = load_trainings_data(n)
         shuffle(self.data)
         self.trainings_data = self.data
-        self.isSplit = split
-        if split:
+        if self.isSplit:
             half_size = int(len(self.data) / 2)
             self.trainings_data = self.data[:half_size]
             self.test_data = self.data[half_size:]
             self.boards_test_data, self.winners_test_data = self.__init_data(self.test_data)
 
         self.boards_trainings_data, self.winners_trainings_data = self.__init_data(self.trainings_data)
+        self.guide = self.__init_guide()
 
-        self.set_model_and_guide(model, load=False)
-
-        self.latest_means = []
-        self.latest_stds = []
-        self.latest_data = []
-
-    def set_model_and_guide(self, model, load=False):
-        if load:
-            self.model = model
-            self.load_model_and_guide()
-        else:
-            self.model = model
-            self.guide = self.__init_guide()
-
-            self.save_model_and_guide(self.model, self.guide)
+        self.save_model_and_guide(self.model, self.guide)
 
     def __init_guide(self):
         print("setup guide")
@@ -144,8 +155,9 @@ def load_trainings_data(n=-1):
 class AI():
     def __init__(self):
         print("being init AI")
-        data = load_trainings_data()
-        self.ai = Evaluator(data, False)
+
+        self.ai = Evaluator()
+        self.ai.create(split=False, load=False)
         print("finished int ai")
 
     def predict(self, data: []):

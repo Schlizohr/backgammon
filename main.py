@@ -1,3 +1,4 @@
+from BackammonGamer import load_trainings_data
 from Backgammon import Checker, Board, Game
 from Player import AiPlayer, RandomPlayer
 from mapper import NNMapper

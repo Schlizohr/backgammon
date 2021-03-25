@@ -18,7 +18,7 @@ def openProtocolFile(filename, count=0):
 def writeFile(lines_per_file, nr=0):
     file_name = str(nr) + "-splitprot-" + datetime.now().strftime("%Y%m%d%H%M%S") + "-" + str(len(lines_per_file))
     file_name = file_name + ".txt"
-    if "drop" not in lines_per_file.lower():
+    if "drop" in lines_per_file.lower():
         # protocol_file = open("../protocol/gamefiles/splitted/drops/" + file_name, "w")
         return
     elif "cannot move" in lines_per_file.lower() or "/off" in lines_per_file.lower() or "bar/" in lines_per_file.lower():

@@ -131,6 +131,7 @@ class Field:
         self.content.extend(repeat(checker, n))
 
     def remove(self, checker: Checker = None):
+        #print("Content:" + str(self.content) + " checker:" + str(checker))
         if checker is None:
             self.content.pop()
         else:
@@ -264,7 +265,7 @@ class Game:
     current_dice = None
     protocol = None
 
-    def __init__(self, player_1, player_2, _log_board_state=False):
+    def __init__(self, player_1, player_2, _log_board_state=False, create_protocol=True):
         global log_board_state
         log_board_state = _log_board_state
         board_logger.debug("#" * 200)
@@ -275,7 +276,10 @@ class Game:
         self.players = cycle(self.players)
         self.current_player: Player = next(self.players)
         self.board: Board = Board(player_1, player_2)
-        self.protocol = Protocol(player_1, player_2, filename=None)
+        if create_protocol:
+            self.protocol = Protocol(player_1, player_2, filename=None)
+        else:
+            self.protocol = None
 
     def run(self):
         while True:
@@ -296,7 +300,8 @@ class Game:
         moves = self.players_moves()  # verify moves
         for src, tar in moves:
             self.board.move(self.current_player.color, src, tar)
-        self.protocol.log_player_turn(self.current_player, self.current_dice, moves)
+        if self.protocol is not None:
+            self.protocol.log_player_turn(self.current_player, self.current_dice, moves)
 
     def players_moves(self):
         is_player_2 = self.current_player == self.player_2

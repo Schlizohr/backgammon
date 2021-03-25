@@ -98,7 +98,9 @@ class Protocol:
                     got_dices = True
                 elif "/" in element:
                     # print(str(element.split("/")[0]))
-                    moves.append(Move((element.split("/"))[0], (element.split("/"))[1]))
+                    src =int(((element.split("/"))[0]).replace('*', '').strip())
+                    trg = int(((element.split("/"))[1]).replace('*', '').strip())
+                    moves.append(Move(src,trg ))
 
             if len(moves) != 0 or got_dices:
                 self.game_proto.append(Turn(die, moves))
@@ -171,9 +173,13 @@ class Move:
     src = None
     trg = None
 
-    def __init__(self, src, trg):
+    def __init__(self, src:int, trg:int):
         #print("Src: "+str(src)+" Trg: "+str(trg))
-        if 0 <= int(src.replace('*', '').strip()) <= 24 and 0 <= int(trg.replace('*', '').strip()) <= 24:
+        if src == 25:
+            src=0
+        if trg == 25:
+            trg=0
+        if 0 <= src <= 24 and 0 <= trg <= 24:
             self.src = src
             self.trg = trg
         else:

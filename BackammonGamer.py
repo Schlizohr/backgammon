@@ -157,7 +157,7 @@ class AI():
         print("being init AI")
 
         self.ai = Evaluator()
-        self.ai.create(split=False, load=False)
+        self.ai.create(split=False, load=True)
         print("finished int ai")
 
     def predict(self, data: []):

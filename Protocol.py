@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from Backgammon import Board, Player, Die, Checker
+    from Backgammon import Die
 
 protocol_logger = logging.getLogger("Protocol")
 
@@ -110,7 +110,7 @@ class Protocol:
             print(str(turn) + "\n")
 
     def whowon(self):
-        return "Player: " + str(((len(self.game_proto) + 1) % 2) + 1) + " won! ->"+ str(len(self.game_proto))
+        return "Player: " + str(((len(self.game_proto) + 1) % 2) + 1) + " won! ->" + str(len(self.game_proto))
 
     def whowonNumber(self):
         return ((len(self.game_proto) + 1) % 2) + 1

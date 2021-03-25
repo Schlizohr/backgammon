@@ -1,35 +1,36 @@
-import itertools
 import json
-import logging
 import os
 from datetime import datetime
+from random import sample
 
-from BackammonGamer import NNMapper
-from Backgammon import Checker, Board, Player, Field
+from tqdm.auto import tqdm
+
+from BackammonGamer import NNMapper, TrainingsData
+from Backgammon import Checker
 from Player import HumanPlayer
 from Protocol import Protocol
 from Simulation import Simulation
 from helper.Encoder import MyEncoder
 
 
-def dump_trainingsdata(trainingsdata: [], nr: int = 0):
+def dump_trainingsdata(trainingsdata: [TrainingsData], nr: int = 0):
     filename = str(nr) + "-trainingsdata-" + datetime.now().strftime("%Y%m%d%H%M%S") + ".txt"
     protocol_file = open("../protocol/trainingsboards/" + filename, "w")
     json.dump(MyEncoder().encode(trainingsdata), protocol_file)
     protocol_file.close()
 
 
-if __name__ == '__main__':  #
+def create_trainings_data():
     count = 0
     player1 = 0
     player2 = 0
     directory = "../protocol/gamefiles/splitted/"
-    for filename in os.listdir(directory):
-        if (filename.endswith(".mat") or filename.endswith(".txt")):
+    for filename in tqdm(os.listdir(directory)):
+        if filename.endswith(".mat") or filename.endswith(".txt"):
             # print(os.path.join(directory, filename))
             path = os.path.join("gamefiles/splitted/", filename)
             prot = Protocol(HumanPlayer(Checker.WHITE), HumanPlayer(Checker.BLACK), path, 'r')
-            print(filename + " -> " + prot.whowon())
+            # print(filename + " -> " + prot.whowon())
 
             sim = Simulation()
             mapper = NNMapper()
@@ -57,21 +58,23 @@ if __name__ == '__main__':  #
     print("Player1 won " + str((player1 / (player1 + player2)) * 100) + "%!")
 
 
-class Trainingsstatus:
-    def __init__(self):
-        self.status = []
+def load_trainings_data(n=-1):
+    directory = "protocol/trainingsboards/"
+    files = os.listdir(directory)
+    if n != -1:
+        files = sample(files, n)
 
-    def add_status(self, board: Board, winner: Checker):
-        self.status.append(Status(board, winner))
+    trainings_data = []
 
-    def __str__(self):
-        ret_string = ""
-        for status in self.status:
-            ret_string = str(json.dump(status)) + "\n"
-        return ret_string
+    for filename in tqdm(files):
+        path = os.path.join(directory, filename)
+        with open(path, "r") as fp:
+            data: str = json.load(fp, object_hook=lambda d: TrainingsData(**d))
+            data: [TrainingsData] = json.loads(data, object_hook=lambda d: TrainingsData(**d))
+            trainings_data.extend(data)
+
+    return trainings_data
 
 
-class Status:
-    def __init__(self, board: Board, winner: Checker):
-        self.board = board
-        self.winner = winner
+if __name__ == '__main__':  #
+    create_trainings_data()

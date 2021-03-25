@@ -268,7 +268,7 @@ class Game:
     def __init__(self, player_1, player_2, _log_board_state=False, create_protocol=True):
         global log_board_state
         log_board_state = _log_board_state
-        board_logger.debug("#" * 200)
+        # board_logger.debug("#" * 200)
         self.player_1: Player = player_1
         self.player_2: Player = player_2
         self.players: [Player] = [player_1, player_2]

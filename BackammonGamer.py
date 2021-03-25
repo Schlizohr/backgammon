@@ -71,7 +71,7 @@ class NNMapper:
         if len(content) >= 3:
             node_values[2] = 1
         if len(content) >= 4:
-            node_values[3] = len(content) / 2
+            node_values[3] = (len(content) - 3) / 2
 
         return node_values
 
@@ -106,7 +106,7 @@ class NNMapper:
         out = board.out
         total_count = len(out)
         white_count = len([x for x in out if x == Checker.WHITE])
-        return [[white_count], [total_count - white_count]]
+        return [[white_count / 2], [(total_count - white_count) / 2]]
 
 
 class NeuralNetwork(PyroModule):

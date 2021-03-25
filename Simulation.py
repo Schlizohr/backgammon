@@ -1,4 +1,6 @@
-from Backgammon import Checker, Game, Board
+from copy import deepcopy
+
+from Backgammon import Checker, Game
 from Player import RandomPlayer
 from Protocol import Protocol
 
@@ -43,7 +45,7 @@ class Simulation:
                                 (25 - int(move.trg)) % 25))
                     self.game.board.move(player.color, (25 - int(move.src)) % 25, (25 - int(move.trg)) % 25)
 
-            status.append((self.game.board, next_player, winner))
+            status.append((self.game.board.get_view(), deepcopy(next_player.color), deepcopy(winner)))
             if log:
                 print(self.game.board)
         return status

@@ -70,7 +70,7 @@ def verify_moves(player: Player, moves: [(int, int)], die: Die, board: Board):
 
         logging.debug(f"player moves its checker")
 
-        remove_from_game = target <= 0 or target > 24
+        remove_from_game = target <= 0 or target >= 24
         # player can only move checker to to positions with 1 or less checkers present or one then he already owns
         target_field = None
         if not remove_from_game:
@@ -82,7 +82,7 @@ def verify_moves(player: Player, moves: [(int, int)], die: Die, board: Board):
 
         if remove_from_game:
             pos = board.get_checkers_position_of(player)
-            in_base = player.home.in_home(min(pos)) and player.home.in_home(max(pos))
+            in_base = 1 <= min(pos) <= 6 and 1 <= max(pos) <= 6
             if not in_base:
                 logging.debug(f"not all checkers in base")
                 raise ValueError("not all checkers in base")

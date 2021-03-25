@@ -60,7 +60,9 @@ def __calculate_possible_moves(color, move_options: [int], board: Board) -> [[(i
     return possible_moves
 
 
-def keep_max_moves_only(possible_moves) -> [[(int, int)]]:
+def keep_max_moves_only(possible_moves: []) -> [[(int, int)]]:
+    if len(possible_moves) == 0:
+        return []
     max_len = len(max(possible_moves, key=len))
     return list(filter(lambda pm: len(pm) == max_len, possible_moves))
 

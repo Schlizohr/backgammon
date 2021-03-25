@@ -38,7 +38,7 @@ class Protocol:
         if mode == 'w':
             self.createProtocolFile(filename)
         else:
-            #print("Opening: "+filename)
+            print("Opening: "+filename)
             self.openProtocolFile(filename)
 
 
@@ -69,14 +69,18 @@ class Protocol:
         for line in lines:
             count += 1
             line = line.strip()
-            if len(line) == 0:
+            if len(line) < 4: #to short for further checks
                 continue
-            if line[0] == ';' or not line[0].isdigit() or 'match' in line:
+            #if line[0] == ';' or not line[0].isdigit() or 'match' in line:
+            #    continue
+            if not (line[0].isdigit() and line[1] == ')')\
+                    and not (line[0].isdigit() and line[1].isdigit() and line[2] == ')')\
+                    and not (line[0].isdigit() and line[1].isdigit() and line[2].isdigit() and line[3] == ')'):
                 continue
             protocol_logger.debug("Line{}: {}".format(count, line.strip()))
 
             # delete turn number
-            # print(line)
+            #print(line)
             line = (line.split(")")[1]).strip()
             # split by space
             # example line :   63: 25/22 22/16             64: 21/15 15/11

@@ -16,7 +16,7 @@ class Test(TestCase):
     logging.basicConfig(level=logging.DEBUG)
 
     def setUp(self) -> None:
-        self.game = Game(self.black, self.white)
+        self.game = Game(self.black, self.white, create_protocol=False)
 
     def test_move_generator_double_six(self):
         pprint.pprint(generate_moves(self.white, Die(6, 6), self.game.board))
@@ -103,3 +103,22 @@ class Test(TestCase):
         ]
         pprint.pprint(moves)
         self.assertEqual(moves, expected_moves)
+
+    def test_two_out_can_move_only_one(self):
+        self.game.board.board = self.game.board.clear_board()
+        self.game.board.place_at(0, self.black.color, 1)
+        self.game.board.place_at(0, self.black.color, 1)
+
+        self.game.board.place_at(19, self.white.color, 1)
+        self.game.board.place_at(19, self.white.color, 1)
+
+        moves = generate_moves_serial(self.black, Die(2, 6), self.game.board)
+        expected_moves = [[(0, 23)]]
+        self.assertEqual(moves, expected_moves)
+
+    def test_black_move_out(self):
+        self.game.board.board = self.game.board.clear_board()
+        self.game.board.place_at(19, self.white.color, 1)
+        self.game.board.place_at(22, self.white.color, 1)
+        moves = generate_moves_serial(self.black, Die(4, 6), self.game.board)
+        print(moves)

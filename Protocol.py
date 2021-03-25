@@ -20,14 +20,15 @@ class Protocol:
 
     game_proto = []
 
-    def __init__(self, player1, player2, filename=None, mode='w'):
+    # def __init__(self, player1, player2, filename=None, mode='w'):
+    def __init__(self, filename=None, mode='w'):
         if mode == 'r' and filename is None:
             protocol_logger.debug("r is given but no filename !")
             return
-        self.player1 = player1
-        self.player2 = player2
+        # self.player1 = player1
+        # self.player2 = player2
 
-        #if something doesnt work with protocol it could be with the following 4 lines
+        # if something doesnt work with protocol it could be with the following 4 lines
         self.protocol_file = None
         self.protocol_filename = None
         self.turn_number = 1
@@ -38,9 +39,8 @@ class Protocol:
         if mode == 'w':
             self.createProtocolFile(filename)
         else:
-            #print("Opening: "+filename)
+            # print("Opening: "+filename)
             self.openProtocolFile(filename)
-
 
     def createProtocolFile(self, filename):
         if filename is None:
@@ -48,13 +48,13 @@ class Protocol:
         self.protocol_filename = filename
         self.protocol_file = open("protocol/" + filename, "w")
         self.protocol_file.write(datetime.now().strftime("Protocol from: %Y/%m/%d %H:%M:%S\n\n"))
-        self.protocol_file.write(str(type(self.player1)) + " against " + str(type(self.player2)) + "\n\n")
+        #self.protocol_file.write(str(type(self.player1)) + " against " + str(type(self.player2)) + "\n\n")
         self.protocol_file.close()
 
     def openProtocolFile(self, filename):
         self.protocol_filename = filename
         try:
-            self.protocol_file = open("protocol/" + filename, "r",errors='replace')
+            self.protocol_file = open("protocol/" + filename, "r", errors='replace')
         except FileNotFoundError:
             self.protocol_file = open("../protocol/" + filename, "r", errors='replace')
 
@@ -69,18 +69,18 @@ class Protocol:
         for line in lines:
             count += 1
             line = line.strip()
-            if len(line) < 4: #to short for further checks
+            if len(line) < 4:  # to short for further checks
                 continue
-            #if line[0] == ';' or not line[0].isdigit() or 'match' in line:
+            # if line[0] == ';' or not line[0].isdigit() or 'match' in line:
             #    continue
-            if not (line[0].isdigit() and line[1] == ')')\
-                    and not (line[0].isdigit() and line[1].isdigit() and line[2] == ')')\
+            if not (line[0].isdigit() and line[1] == ')') \
+                    and not (line[0].isdigit() and line[1].isdigit() and line[2] == ')') \
                     and not (line[0].isdigit() and line[1].isdigit() and line[2].isdigit() and line[3] == ')'):
                 continue
             protocol_logger.debug("Line{}: {}".format(count, line.strip()))
 
             # delete turn number
-            #print(line)
+            # print(line)
             line = (line.split(")")[1]).strip()
             # split by space
             # example line :   63: 25/22 22/16             64: 21/15 15/11
@@ -102,9 +102,9 @@ class Protocol:
                     got_dices = True
                 elif "/" in element:
                     # print(str(element.split("/")[0]))
-                    src =int(((element.split("/"))[0]).replace('*', '').strip())
+                    src = int(((element.split("/"))[0]).replace('*', '').strip())
                     trg = int(((element.split("/"))[1]).replace('*', '').strip())
-                    moves.append(Move(src,trg ))
+                    moves.append(Move(src, trg))
 
             if len(moves) != 0 or got_dices:
                 self.game_proto.append(Turn(die, moves))
@@ -118,7 +118,6 @@ class Protocol:
 
     def whowonNumber(self):
         return ((len(self.game_proto) + 1) % 2) + 1
-
 
     def log_player_turn(self, player, dices, moves):
         if self.one_player_turn is None:
@@ -177,12 +176,12 @@ class Move:
     src = None
     trg = None
 
-    def __init__(self, src:int, trg:int):
-        #print("Src: "+str(src)+" Trg: "+str(trg))
+    def __init__(self, src: int, trg: int):
+        # print("Src: "+str(src)+" Trg: "+str(trg))
         if src == 25:
-            src=0
+            src = 0
         if trg == 25:
-            trg=0
+            trg = 0
         if 0 <= src <= 24 and 0 <= trg <= 24:
             self.src = src
             self.trg = trg

@@ -52,6 +52,7 @@ def __calculate_possible_moves(color, move_options: [int], board: Board) -> [[(i
             temp_board = deepcopy(board)
             temp_board.move(color, location, target)
             if len(move_options) != 0:
+                # possible_moves.extend(moves[:])
                 child_moves: [[(int, int)]] = __calculate_possible_moves(color, deepcopy(move_options), temp_board)
                 for child_move in child_moves:
                     moves.append(move + child_move)
@@ -65,8 +66,8 @@ def keep_max_moves_only(possible_moves) -> [[(int, int)]]:
 
 
 def remove_invalid_moves(possible_moves, player: Player, die: Die, board: Board) -> [[(int, int)]]:
-    possible_moves = keep_max_moves_only(possible_moves)
     possible_moves = list(filter(lambda m: moves_are_valid(player, m, die, deepcopy(board)), possible_moves))
+    possible_moves = keep_max_moves_only(possible_moves)
     return possible_moves
 
 

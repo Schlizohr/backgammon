@@ -2,22 +2,20 @@ import glob
 import json
 import os
 from datetime import datetime
-from random import sample
 
 from tqdm.auto import tqdm
 
-from BackammonGamer import NNMapper, TrainingsData
-from Backgammon import Checker
-from Player import HumanPlayer
 from Protocol import Protocol
 from Simulation import Simulation
 from helper.Encoder import MyEncoder
+from mapper import NNMapper, TrainingsData
 
 
 def delete_old_files(path):
     files = glob.glob(path)
     for f in files:
         os.remove(f)
+
 
 def dump_trainingsdata(trainingsdata: [TrainingsData], nr: int = 0):
     filename = str(nr) + "-trainingsdata-" + datetime.now().strftime("%Y%m%d%H%M%S") + ".txt"
@@ -35,7 +33,8 @@ def create_trainings_data():
         if filename.endswith(".mat") or filename.endswith(".txt"):
             # print(os.path.join(directory, filename))
             path = os.path.join("gamefiles/splitted/", filename)
-            prot = Protocol(HumanPlayer(Checker.WHITE), HumanPlayer(Checker.BLACK), path, 'r')
+            # prot = Protocol(HumanPlayer(Checker.WHITE), HumanPlayer(Checker.BLACK), path, 'r')
+            prot = Protocol(path, 'r')
             # print(filename + " -> " + prot.whowon())
 
             sim = Simulation()
@@ -62,24 +61,6 @@ def create_trainings_data():
 
     print("Player1: " + str(player1) + "Player2: " + str(player2))
     print("Player1 won " + str((player1 / (player1 + player2)) * 100) + "%!")
-
-
-def load_trainings_data(n=-1):
-    directory = "protocol/trainingsboards/"
-    files = os.listdir(directory)
-    if n != -1:
-        files = sample(files, n)
-
-    trainings_data = []
-
-    for filename in tqdm(files):
-        path = os.path.join(directory, filename)
-        with open(path, "r") as fp:
-            data: str = json.load(fp, object_hook=lambda d: TrainingsData(**d))
-            data: [TrainingsData] = json.loads(data, object_hook=lambda d: TrainingsData(**d))
-            trainings_data.extend(data)
-
-    return trainings_data
 
 
 if __name__ == '__main__':

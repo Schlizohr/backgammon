@@ -16,7 +16,7 @@ def get_logger(name, file, formatter, level, filemode="a"):
     try:
         handler = logging.FileHandler(file, mode=filemode)
     except FileNotFoundError:
-        handler = logging.FileHandler('../'+file, mode=filemode)
+        handler = logging.FileHandler('../' + file, mode=filemode)
     handler.setFormatter(formatter)
 
     logger = logging.getLogger(name)
@@ -131,7 +131,7 @@ class Field:
         self.content.extend(repeat(checker, n))
 
     def remove(self, checker: Checker = None):
-        #print("Content:" + str(self.content) + " checker:" + str(checker))
+        # print("Content:" + str(self.content) + " checker:" + str(checker))
         if checker is None:
             self.content.pop()
         else:
@@ -277,7 +277,7 @@ class Game:
         self.current_player: Player = next(self.players)
         self.board: Board = Board(player_1, player_2)
         if create_protocol:
-            self.protocol = Protocol(player_1, player_2, filename=None)
+            self.protocol = Protocol()
         else:
             self.protocol = None
 
@@ -314,7 +314,16 @@ class Game:
                 self.board.get_view(is_player_2)
             )
         if is_player_2:
-            moves = [((25 - s) % 25, (25 - t) % 25) for s, t in moves]
+            l = []
+            for s, t in moves:
+                s = 25 - s
+                t = 25 - t
+                if s == 25:
+                    s = 0
+                if t == 25:
+                    t = 0
+                l.append((s, t))
+            moves = l
         return moves
 
     def calculate_points(self, current_player, loser):

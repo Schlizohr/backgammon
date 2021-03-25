@@ -21,15 +21,26 @@ class Protocol:
     game_proto = []
 
     def __init__(self, player1, player2, filename=None, mode='w'):
-        if mode == 'r' and filename == None:
+        if mode == 'r' and filename is None:
             protocol_logger.debug("r is given but no filename !")
             return
         self.player1 = player1
         self.player2 = player2
+
+        #if something doesnt work with protocol it could be with the following 4 lines
+        self.protocol_file = None
+        self.protocol_filename = None
+        self.turn_number = 1
+        self.one_player_turn = None
+
+        self.game_proto = []
+
         if mode == 'w':
             self.createProtocolFile(filename)
         else:
+            #print("Opening: "+filename)
             self.openProtocolFile(filename)
+
 
     def createProtocolFile(self, filename):
         if filename is None:
@@ -43,9 +54,9 @@ class Protocol:
     def openProtocolFile(self, filename):
         self.protocol_filename = filename
         try:
-            self.protocol_file = open("protocol/" + filename, "r")
+            self.protocol_file = open("protocol/" + filename, "r",errors='replace')
         except FileNotFoundError:
-            self.protocol_file = open("../protocol/" + filename, "r")
+            self.protocol_file = open("../protocol/" + filename, "r", errors='replace')
 
         self.readProtocol()
         self.protocol_file.close()
@@ -98,6 +109,10 @@ class Protocol:
 
     def whowon(self):
         return "Player: " + str(((len(self.game_proto) + 1) % 2) + 1) + " won! ->"+ str(len(self.game_proto))
+
+    def whowonNumber(self):
+        return ((len(self.game_proto) + 1) % 2) + 1
+
 
     def log_player_turn(self, player, dices, moves):
         if self.one_player_turn is None:
@@ -157,7 +172,7 @@ class Move:
     trg = None
 
     def __init__(self, src, trg):
-        # print("Src: "+str(src)+" Trg: "+str(trg))
+        #print("Src: "+str(src)+" Trg: "+str(trg))
         if 0 <= int(src.replace('*', '').strip()) <= 24 and 0 <= int(trg.replace('*', '').strip()) <= 24:
             self.src = src
             self.trg = trg

@@ -50,24 +50,26 @@ class RandomPlayer(Player):
         logging.debug("invalid move")
 
 
-def get_future_boards(moves_options, board):
-    pass
-
-
 class AiPlayer(Player):
 
     def calculate_moves(self, dices: Die, board) -> [(int, int)]:
         moves_options = generate_moves(self, Die(dices.first, dices.second), board)
         moves = []
 
-        future_boards = get_future_boards(moves_options,board)
+        future_boards = self.get_future_boards(moves_options, board)
 
-        mapper = NNMapper()
-        trainings_data=mapper.to_trainings_data(board, self.color, self.color) #?????
-        ai_q = MyEncoder().encode(trainings_data)
+        best_board = -1
+        best_value = -1
+
+        for i,future_board in enumerate(future_boards):
+            mapper = NNMapper()
+            node_data = mapper.to_nodes(future_board, self.color)
+            ret_value = 0 #send to ai and recieve value???
+            if ret_value > best_value:
+                best_value=ret_value
+                best_board=i
 
 
-        moves = choice(moves_options)# let ai choose
         self.slow(board)
         return moves
 
@@ -81,3 +83,12 @@ class AiPlayer(Player):
 
     def invalid_move(self):
         logging.debug("invalid move")
+
+    def get_future_boards(self, moves_options, board):
+        possible_boards = []
+        for possible_moves in moves_options:
+            temp_board = board.get_view()
+            for (src, trg) in possible_moves:
+                temp_board.move(self.color, src, trg)
+            possible_boards.append(temp_board.get_view())
+        return possible_boards

@@ -38,7 +38,7 @@ class Protocol:
         if mode == 'w':
             self.createProtocolFile(filename)
         else:
-            print("Opening: "+filename)
+            #print("Opening: "+filename)
             self.openProtocolFile(filename)
 
 

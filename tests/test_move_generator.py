@@ -3,7 +3,7 @@ import pprint
 from unittest import TestCase
 
 from Backgammon import Checker, Game, Die
-from Player import HumanPlayer
+from Player import HumanPlayer, RandomPlayer
 from move_generator import generate_moves, generate_moves_serial
 
 logging.basicConfig(level=logging.CRITICAL)
@@ -117,8 +117,19 @@ class Test(TestCase):
         self.assertEqual(moves, expected_moves)
 
     def test_black_move_out(self):
-        self.game.board.board = self.game.board.clear_board()
-        self.game.board.place_at(19, self.white.color, 1)
-        self.game.board.place_at(22, self.white.color, 1)
-        moves = generate_moves_serial(self.black, Die(4, 6), self.game.board)
+        rand_black = RandomPlayer(Checker.BLACK)
+        human_white = RandomPlayer(Checker.WHITE)
+
+        game = Game(player_1=human_white, player_2=rand_black, create_protocol=False)
+        game.board.board = game.board.clear_board()
+        game.current_player = rand_black
+        game.current_dice = Die(4, 6)
+        game.board.place_at(19, Checker.BLACK, 1)
+        game.board.place_at(22, Checker.BLACK, 1)
+
+        game.board.place_at(18, Checker.WHITE, 4)
+
+        game.run()
+
+        moves = generate_moves_serial(self.black, Die(4, 6), game.board.get_view(True))
         print(moves)

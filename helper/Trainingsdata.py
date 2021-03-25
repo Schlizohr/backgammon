@@ -1,3 +1,4 @@
+import glob
 import json
 import os
 from datetime import datetime
@@ -12,6 +13,11 @@ from Protocol import Protocol
 from Simulation import Simulation
 from helper.Encoder import MyEncoder
 
+
+def delete_old_files(path):
+    files = glob.glob(path)
+    for f in files:
+        os.remove(f)
 
 def dump_trainingsdata(trainingsdata: [TrainingsData], nr: int = 0):
     filename = str(nr) + "-trainingsdata-" + datetime.now().strftime("%Y%m%d%H%M%S") + ".txt"
@@ -76,5 +82,6 @@ def load_trainings_data(n=-1):
     return trainings_data
 
 
-if __name__ == '__main__':  #
+if __name__ == '__main__':
+    delete_old_files("protocol/trainingsboards/*.txt")
     create_trainings_data()

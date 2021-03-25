@@ -11,7 +11,7 @@ def get_url_content(url):
 
 if __name__ == '__main__':
     count = 1
-    i = 0
+    i = 2160
     file_count = 1
     while i <= 10000:
         url = 'http://itikawa.com/kifdb/herodb.cgi?table=bg&view=M&sort=1&order=D&recpoint=' + str(i)

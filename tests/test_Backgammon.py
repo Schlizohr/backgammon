@@ -47,11 +47,3 @@ class TestValidation(TestCase):
         print(self.game.board[0])
         self.game.board.move(self.black.color, 0, 4)
         print(self.game.board[0])
-
-    def test_two_in_out_move_white(self):
-        self.game.board.board = self.game.board.clear_board()
-        self.game.board.place_at(0, self.black.color)
-        self.game.board.place_at(0, self.white.color)
-        print(self.game.board[0])
-        self.game.board.move(self.white.color, 0, 4)
-        print(self.game.board[0])

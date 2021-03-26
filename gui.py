@@ -132,12 +132,13 @@ class HumanPlayer(Player):
             moves = self.map_out_moves(moves, possible_moves)
         return moves
 
-    def map_out_moves(self, moves: [(int, int)], possible_moves: [[(int, int)]]):
+    @staticmethod
+    def map_out_moves(moves: [(int, int)], possible_moves: [[(int, int)]]) -> [(int, int)]:
         sources = [s for s, _ in moves]
-        chosen_moves = list(filter(lambda ms: all([s in sources for s, _ in ms]), possible_moves))
-        if sorted(moves) != sorted(chosen_moves):
+        chosen_moves = list(filter(lambda ms: [s for s, _ in ms] == sources, possible_moves))
+        if len(chosen_moves) == 0:
             chosen_moves = moves
-        return chosen_moves
+        return chosen_moves[0]
 
 
 class Cone(GameObject):

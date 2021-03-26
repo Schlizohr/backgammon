@@ -14,6 +14,27 @@ from tqdm.auto import trange, tqdm
 from mapper import TrainingsData
 
 
+class NeuralNetwork2(PyroModule):
+    def __init__(self, input_nodes=198, hidden_nodes=50):
+        print("init neural network")
+        super().__init__()
+        self.fc1 = PyroModule[nn.Linear](input_nodes, hidden_nodes)
+        self.fc1.weight = PyroSample(dist.Normal(0., 1.).expand([hidden_nodes, input_nodes]).to_event(2))
+        self.fc1.bias = PyroSample(dist.Normal(0., 1.).expand([hidden_nodes]).to_event(1))
+        self.fc2 = PyroModule[nn.Linear](hidden_nodes, 1)
+        self.fc2.weight = PyroSample(dist.Normal(0., 1.).expand([1, hidden_nodes]).to_event(2))
+        self.fc2.bias = PyroSample(dist.Normal(0., 1.).expand([1]).to_event(1))
+        self.relu = nn.ReLU()
+
+    def forward(self, x, y=None):
+        x = self.relu(self.fc1(x))
+        mu = self.fc2(x).squeeze(-1)
+        sigma = pyro.sample("sigma", dist.Uniform(0., 0.1))
+        with pyro.plate("data", x.shape[0]):
+            obs = pyro.sample("obs", dist.Normal(mu, sigma), obs=y)
+        return mu
+
+
 class NeuralNetwork(PyroModule):
     def __init__(self, input_nodes=198, hidden_nodes=50):
         print("init neural network")
@@ -30,7 +51,7 @@ class NeuralNetwork(PyroModule):
     def forward(self, x, y=None):
         x = self.relu(self.fc1(x))
         mu = self.fc2(x).squeeze(-1)
-        sigma = pyro.sample("sigma", dist.Uniform(0., 1.))
+        sigma = pyro.sample("sigma", dist.Uniform(0., 0.1))
         with pyro.plate("data", x.shape[0]):
             obs = pyro.sample("obs", dist.Normal(mu, sigma), obs=y)
         return mu
@@ -54,15 +75,17 @@ class Evaluator:
         self.latest_stds = []
         self.latest_data = []
 
-    def create(self,split=True, model=NeuralNetwork(), load = False,n=-1):
+    def create(self, split=True, model=NeuralNetwork(), load=False, guide=None, n=-1):
         self.isSplit = split
         self.model = model
         if load:
             self.load_model_and_guide()
         else:
-            self.create_model_and_guide(n)
+            if guide is None:
+                guide = AutoDiagonalNormal(model)
+            self.create_model_and_guide(guide, n)
 
-    def create_model_and_guide(self,n=-1):
+    def create_model_and_guide(self, guide, n=-1):
 
         self.data = load_trainings_data(n)
         shuffle(self.data)
@@ -74,21 +97,19 @@ class Evaluator:
             self.boards_test_data, self.winners_test_data = self.__init_data(self.test_data)
 
         self.boards_trainings_data, self.winners_trainings_data = self.__init_data(self.trainings_data)
-        self.guide = self.__init_guide()
+        self.guide = self.__init_guide(guide)
 
         self.save_model_and_guide(self.model, self.guide)
 
-    def __init_guide(self):
+    def __init_guide(self, guide):
         print("setup guide")
-        guide = AutoDiagonalNormal(
-            self.model)  # automatic guide generation http://docs.pyro.ai/en/0.2.1-release/contrib.autoguide.html
 
         optimizer = pyro.optim.Adam({"lr": 1e-2})  # optimiser for stochastic optimization, use default parameters
 
         svi = SVI(self.model, guide, optimizer, loss=Trace_ELBO())  # Stochastic Variational Inference
 
         pyro.clear_param_store()
-        [svi.step(self.boards_trainings_data, self.winners_trainings_data) for i in trange(1000)]
+        [svi.step(self.boards_trainings_data, self.winners_trainings_data) for i in trange(5000)]
         guide.requires_grad_(False)
         return guide
 
@@ -122,15 +143,53 @@ class Evaluator:
             data = self.boards_test_data
 
         prediction = predictor(data)
-        # print("prediction", prediction)
 
         self.latest_means = prediction['obs'].T.detach().numpy().mean(axis=1)
         self.latest_stds = prediction['obs'].T.detach().numpy().std(axis=1)
 
-        # print("mean", self.latest_means)
-        # print("std", self.latest_stds)
-
         return self.latest_means
+
+
+class Analyzing:
+    def __init__(self, model, guide=None):
+        self.evaluator = Evaluator()
+        self.evaluator.create(model=model, guide=guide)
+        self.evaluator.predict()
+
+    def analyzing(self):
+        means = self.evaluator.latest_means.tolist()
+        stds = self.evaluator.latest_stds.tolist()
+
+        min_mean = min(means)
+        avg_mean = sum(means) / len(means)
+        max_mean = max(means)
+
+        print("mean min", min_mean)
+        print("mean avg", avg_mean)
+        print("mean max", max_mean)
+
+        min_std = min(stds)
+        avg_std = sum(stds) / len(stds)
+        max_std = max(stds)
+
+        print("std min", min_std)
+        print("std avg", avg_std)
+        print("std max", max_std)
+
+        error = []
+        for w, m in zip(self.evaluator.winners_test_data, means):
+            if w == 0:
+                error.append(m)
+            else:
+                error.append(1 - m)
+
+        min_error = min(error)
+        avg_error = sum(error) / len(error)
+        max_error = max(error)
+
+        print("error min", min_error)
+        print("error avg", avg_error)
+        print("error max", max_error)
 
 
 def load_trainings_data(n=-1):
@@ -155,7 +214,6 @@ def load_trainings_data(n=-1):
 class AI():
     def __init__(self):
         print("being init AI")
-
         self.ai = Evaluator()
         self.ai.create(split=False, load=True)
         print("finished int ai")

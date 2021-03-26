@@ -2,6 +2,7 @@ import logging
 import pprint
 from unittest import TestCase
 
+import gui
 from Backgammon import Checker, Game, Die
 from Player import HumanPlayer, RandomPlayer
 from move_generator import generate_moves, generate_moves_serial
@@ -141,9 +142,7 @@ class Test(TestCase):
         self.game.current_player = self.black
 
         self.game.board.place_at(23, self.white.color, 6)
-        print(self.game.board.get_view(True))
-
         moves = generate_moves_serial(self.black, Die(4, 4), self.game.board.get_view(True))
-        print(moves)
-        # expected_moves = [[(0, 23)]]
-        # self.assertEqual(moves, expected_moves)
+        moves = gui.HumanPlayer.map_out_moves([(3, 0), (4, 0), (3, 0), (4, 0)], moves)
+        expected_moves = [(3, -1), (3, -1), (4, 0), (4, 0)]
+        self.assertEqual(sorted(moves), expected_moves)

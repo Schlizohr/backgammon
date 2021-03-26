@@ -1,13 +1,21 @@
-from BackammonGamer import load_trainings_data
-from Backgammon import Checker, Board, Game
-from Player import AiPlayer, RandomPlayer
-from mapper import NNMapper
+from pyro.infer.autoguide import AutoDelta
 
-if __name__ == '__main__':
-    node_mapper = NNMapper()
+from BackammonGamer import Analyzing, NeuralNetwork
+from Backgammon import Checker, Game
+from Player import AiPlayer, RandomPlayer
+
+
+def play_against_ai():
     player1 = AiPlayer(Checker.WHITE)
     player2 = RandomPlayer(Checker.BLACK)
-    board = Board(player1, player2)
 
     game = Game(player_1=player1, player_2=player2, create_protocol=True)
     game.run()
+
+
+if __name__ == '__main__':
+    # Analyzing(NeuralNetwork()).analyzing()
+
+    # print("guide auto delta")
+    model4 = NeuralNetwork()
+    Analyzing(model4, AutoDelta(model4)).analyzing()
